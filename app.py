@@ -10,6 +10,7 @@ WINDOW_HEIGHT = 400
 ICON = pygame.image.load("graphics/Player/jump.png")
 TITLE = "Pixel Movers UNDER CONSTRUCTION - RESTRICTED"  # TODO: Change the Title
 FONT = pygame.font.Font("font/Pixeltype.ttf", 50)
+GAME_ACTIVE = True
 
 # GAME CONFIG 📐
 screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
@@ -38,38 +39,49 @@ while 1:
             pygame.quit()
             sys.exit("Byeee 👊")
 
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_SPACE:
-                player_gravity = -20
+        if GAME_ACTIVE:
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE and player_rectangle.bottom==300:
+                    player_gravity = -21
 
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            if player_rectangle.collidepoint(event.pos):
-                player_gravity = -20
-
-    # Draw all objects/surfaces 🎭
-    screen.blit(sky_surface, (0, 0))
-    screen.blit(ground_surface, (0, 300))
-    pygame.draw.rect(screen, "#c0e8ec", score_rectangle)
-    pygame.draw.rect(screen, "#c0e8ec", score_rectangle, 6)
-    screen.blit(score_surface, score_rectangle)
-
-    # Player - LOGIC - ALL
-    screen.blit(player_surface, player_rectangle)
-    player_gravity += 1
-    player_rectangle.y += player_gravity
-    if player_rectangle.bottom >= 300:
-        player_rectangle.bottom = 300
+            if event.type == pygame.MOUSEBUTTONDOWN and player_rectangle.bottom==300:
+                if player_rectangle.collidepoint(event.pos):
+                    player_gravity = -21
+        else:
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+                GAME_ACTIVE = True
+                snail_rectangle.x = 850
 
 
-    # SNAIL MOVING LOGIC
-    snail_rectangle.x -= 1
-    if snail_rectangle.x < -100:
-        snail_rectangle.x = 850
-    screen.blit(snail_surface, snail_rectangle)
+    if GAME_ACTIVE:
+        # Draw all objects/surfaces 🎭
+        screen.blit(sky_surface, (0, 0))
+        screen.blit(ground_surface, (0, 300))
+        pygame.draw.rect(screen, "#c0e8ec", score_rectangle)
+        pygame.draw.rect(screen, "#c0e8ec", score_rectangle, 6)
+        screen.blit(score_surface, score_rectangle)
 
-    # COLLISION LOGIC
-    if snail_rectangle.colliderect(player_rectangle):
-        print("COLLISION")
+        # Player - LOGIC - ALL
+        screen.blit(player_surface, player_rectangle)
+        player_gravity += 1
+        player_rectangle.y += player_gravity
+        if player_rectangle.bottom >= 300:
+            player_rectangle.bottom = 300
+
+
+        # SNAIL MOVING LOGIC
+        snail_rectangle.x -= 4
+        if snail_rectangle.x < -100:
+            snail_rectangle.x = 850
+        screen.blit(snail_surface, snail_rectangle)
+
+        # COLLISION LOGIC
+        if snail_rectangle.colliderect(player_rectangle):
+            GAME_ACTIVE = False
+    else:
+        screen.fill("Yellow")
+
+
 
     # Update the display 🎯
     pygame.display.update()
