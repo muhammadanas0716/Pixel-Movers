@@ -48,4 +48,4 @@ while 1:
         print("COLLISION")
     # Update the display 🎯
     pygame.display.update()
-    clock.tick(60)
+    clock.tick(120)
