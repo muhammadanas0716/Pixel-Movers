@@ -26,6 +26,7 @@ score_rectangle = score_surface.get_rect(center=(400, 50))
 
 player_surface = pygame.image.load("graphics/Player/player_stand.png").convert_alpha()
 player_rectangle = player_surface.get_rect(topleft=(50, 216))
+player_gravity = 0
 
 snail_surface = pygame.image.load("graphics/Snail/snail1.png").convert_alpha()
 snail_rectangle = snail_surface.get_rect(topleft=(600, 263))
@@ -39,7 +40,11 @@ while 1:
 
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE:
-                print("jump")
+                player_gravity = -20
+
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if player_rectangle.collidepoint(event.pos):
+                player_gravity = -20
 
     # Draw all objects/surfaces 🎭
     screen.blit(sky_surface, (0, 0))
@@ -47,7 +52,14 @@ while 1:
     pygame.draw.rect(screen, "#c0e8ec", score_rectangle)
     pygame.draw.rect(screen, "#c0e8ec", score_rectangle, 6)
     screen.blit(score_surface, score_rectangle)
+
+    # Player - LOGIC - ALL
     screen.blit(player_surface, player_rectangle)
+    player_gravity += 1
+    player_rectangle.y += player_gravity
+    if player_rectangle.bottom >= 300:
+        player_rectangle.bottom = 300
+
 
     # SNAIL MOVING LOGIC
     snail_rectangle.x -= 1
@@ -61,4 +73,4 @@ while 1:
 
     # Update the display 🎯
     pygame.display.update()
-    clock.tick(120)
+    clock.tick(60)
