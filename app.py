@@ -1,5 +1,6 @@
+import sys
+
 import pygame
-import sys, time
 
 pygame.init()
 
@@ -19,9 +20,13 @@ clock = pygame.time.Clock()
 # SURFACES
 sky_surface = pygame.image.load("graphics/Sky.png").convert()
 ground_surface = pygame.image.load("graphics/ground.png").convert()
-text_surface = FONT.render("UNDER CONSTRUCTION", False, "RED")
+
+score_surface = FONT.render("Score", False, (64, 64, 64))
+score_rectangle = score_surface.get_rect(center=(400, 50))
+
 player_surface = pygame.image.load("graphics/Player/player_stand.png").convert_alpha()
 player_rectangle = player_surface.get_rect(topleft=(50, 216))
+
 snail_surface = pygame.image.load("graphics/Snail/snail1.png").convert_alpha()
 snail_rectangle = snail_surface.get_rect(topleft=(600, 263))
 
@@ -31,10 +36,17 @@ while 1:
         if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit("Byeee 👊")
+
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE:
+                print("jump")
+
     # Draw all objects/surfaces 🎭
     screen.blit(sky_surface, (0, 0))
     screen.blit(ground_surface, (0, 300))
-    screen.blit(text_surface, (260, 70))
+    pygame.draw.rect(screen, "#c0e8ec", score_rectangle)
+    pygame.draw.rect(screen, "#c0e8ec", score_rectangle, 6)
+    screen.blit(score_surface, score_rectangle)
     screen.blit(player_surface, player_rectangle)
 
     # SNAIL MOVING LOGIC
@@ -46,6 +58,7 @@ while 1:
     # COLLISION LOGIC
     if snail_rectangle.colliderect(player_rectangle):
         print("COLLISION")
+
     # Update the display 🎯
     pygame.display.update()
     clock.tick(120)
