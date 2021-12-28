@@ -1,6 +1,6 @@
 import sys
-
 import pygame
+from random import randint
 
 pygame.init()
 
@@ -11,15 +11,6 @@ ICON = pygame.image.load("graphics/Player/jump.png")
 TITLE = "Pixel Movers UNDER CONSTRUCTION - RESTRICTED"  # TODO: Change the Title
 FONT = pygame.font.Font("font/Pixeltype.ttf", 50)
 
-
-def display_score():
-    current_time = int(pygame.time.get_ticks() / 1000) - start_time
-    score_surface = FONT.render(f"Score: {current_time}", False, (64, 64, 64))
-    score_rectangle = score_surface.get_rect(center=(400, 50))
-    screen.blit(score_surface, score_rectangle)
-    return current_time
-
-
 # GAME CONFIG 📐
 screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
 pygame.display.set_caption(TITLE)
@@ -28,6 +19,32 @@ clock = pygame.time.Clock()
 GAME_ACTIVE = False
 start_time = 0
 score = 0
+
+
+# DISPLAY SCORE - FUNCTION
+def display_score():
+    current_time = int(pygame.time.get_ticks() / 1000) - start_time
+    score_surface = FONT.render(f"Score: {current_time}", False, (64, 64, 64))
+    score_rectangle = score_surface.get_rect(center=(400, 50))
+    screen.blit(score_surface, score_rectangle)
+    return current_time
+
+
+# OBSTACLE MOVEMENT - FUNCTION
+def obstacle_movement(obstacle_list):
+    if obstacle_list:
+        for obstacle_rect in obstacle_list:
+            obstacle_rect.x -= 5
+            if obstacle_rect.bottom == 300:
+                screen.blit(snail_surface, obstacle_rect)
+            else:
+                screen.blit(fly_surface, obstacle_rect)
+
+        obstacle_list = [obstacle for obstacle in obstacle_list if obstacle.x > -100]
+        return obstacle_list
+    else:
+        return []
+
 
 # SURFACES
 sky_surface = pygame.image.load("graphics/Sky.png").convert()
@@ -50,11 +67,15 @@ game_title_rectangle = game_title.get_rect(center=(400, 80))
 game_instruction = FONT.render("PRESS SPACE TO START GAME", False, (111, 196, 169))
 game_instruction_rectangle = game_instruction.get_rect(center=(400, 320))
 
-
-
+# ####**OBSTACLES**#####
 # SNAIL SURFACE
 snail_surface = pygame.image.load("graphics/Snail/snail1.png").convert_alpha()
-snail_rectangle = snail_surface.get_rect(topleft=(600, 263))
+fly_surface = pygame.image.load("graphics/Fly/Fly1.png").convert_alpha()
+obstacle_rect_list = []
+
+# Timer
+obstacle_timer = pygame.USEREVENT + 1
+pygame.time.set_timer(obstacle_timer, 1500)
 
 # EVENT LOOP 🖼
 while 1:
@@ -74,8 +95,14 @@ while 1:
         else:
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
                 GAME_ACTIVE = True
-                snail_rectangle.x = 850
                 start_time = int(pygame.time.get_ticks() / 1000)
+
+        if event.type == obstacle_timer and GAME_ACTIVE:
+            if randint(0, 2):
+                obstacle_rect_list.append(snail_surface.get_rect(bottomright=(randint(900, 1100), 300)))
+            else:
+                obstacle_rect_list.append(fly_surface.get_rect(bottomright=(randint(900, 1100), 200)))
+
 
     if GAME_ACTIVE:
         # Draw all objects/surfaces 🎭
@@ -90,22 +117,17 @@ while 1:
         if player_rectangle.bottom >= 300:
             player_rectangle.bottom = 300
 
-        # SNAIL MOVING LOGIC - ALL
-        snail_rectangle.x -= 4
-        if snail_rectangle.x < -100:
-            snail_rectangle.x = 850
-        screen.blit(snail_surface, snail_rectangle)
+        # Obstacle movement
+        obstacle_rect_list = obstacle_movement(obstacle_rect_list)
 
-        # COLLISION LOGIC/GAME END - ALL
-        if snail_rectangle.colliderect(player_rectangle):
-            GAME_ACTIVE = False
-
+    # START AND GAME END SCREEN
     else:
         screen.fill((94, 129, 162))
         screen.blit(player_stand_start_screen, player_stand_start_screen_rectangle)
         screen.blit(game_title, game_title_rectangle)
         game_score = FONT.render(f"SCORE: {score}", False, (111, 196, 169))
         game_score_rectangle = game_score.get_rect(center=(400, 330))
+
         if score == 0:
             screen.blit(game_instruction, game_instruction_rectangle)
         else:
