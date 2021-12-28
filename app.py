@@ -16,7 +16,7 @@ screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
 pygame.display.set_caption(TITLE)
 pygame.display.set_icon(ICON)
 clock = pygame.time.Clock()
-GAME_ACTIVE = False
+game_active = False
 start_time = 0
 score = 0
 
@@ -46,12 +46,38 @@ def obstacle_movement(obstacle_list):
         return []
 
 
+# COLLISION - FUNCTION
+def collisions(player, obstacles):
+    if obstacles:
+        for obstacle_rect in obstacles:
+            if player.colliderect(obstacle_rect):
+                return False
+    return True
+
+
+def player_animation():
+    global player_surface, player_index
+    if player_rectangle.bottom < 300:
+        player_surface = player_jump
+    else:
+        player_index += 0.08
+        if player_index >= len(player_walking_animations):
+            player_index = 0
+        player_surface = player_walking_animations[int(player_index)]
+
+
 # SURFACES
 sky_surface = pygame.image.load("graphics/Sky.png").convert()
 ground_surface = pygame.image.load("graphics/ground.png").convert()
 
 # PLAYER SURFACE
-player_surface = pygame.image.load("graphics/Player/player_stand.png").convert_alpha()
+player_walk_1 = pygame.image.load("graphics/Player/player_stand.png").convert_alpha()
+player_walk_2 = pygame.image.load("graphics/Player/player_walk_2.png").convert_alpha()
+player_walking_animations = [player_walk_1, player_walk_2]
+player_index = 0
+player_surface = player_walking_animations[player_index]
+player_jump = pygame.image.load("graphics/Player/jump.png").convert_alpha()
+
 player_rectangle = player_surface.get_rect(topleft=(50, 216))
 player_gravity = 0
 
@@ -69,13 +95,31 @@ game_instruction_rectangle = game_instruction.get_rect(center=(400, 320))
 
 # ####**OBSTACLES**#####
 # SNAIL SURFACE
-snail_surface = pygame.image.load("graphics/Snail/snail1.png").convert_alpha()
-fly_surface = pygame.image.load("graphics/Fly/Fly1.png").convert_alpha()
+snail_frame_1 = pygame.image.load("graphics/Snail/snail1.png").convert_alpha()
+snail_frame_2= pygame.image.load("graphics/Snail/snail2.png").convert_alpha()
+snail_index = 0
+snail_frames = [snail_frame_1, snail_frame_2]
+snail_surface = snail_frames[snail_index]
+
+# FLY SURFACE
+fly_frame_1 = pygame.image.load("graphics/Fly/Fly1.png").convert_alpha()
+fly_frame_2 = pygame.image.load("graphics/Fly/Fly2.png").convert_alpha()
+fly_frames = [fly_frame_1, fly_frame_2]
+fly_index = 0
+fly_surface = fly_frames[fly_index]
+
+# OBSTACLE RECTS LIST
 obstacle_rect_list = []
 
 # Timer
 obstacle_timer = pygame.USEREVENT + 1
 pygame.time.set_timer(obstacle_timer, 1500)
+
+snail_animation_timer = pygame.USEREVENT + 2
+pygame.time.set_timer(snail_animation_timer, 500)
+
+fly_animation_timer = pygame.USEREVENT + 3
+pygame.time.set_timer(fly_animation_timer, 200)
 
 # EVENT LOOP 🖼
 while 1:
@@ -84,7 +128,7 @@ while 1:
             pygame.quit()
             sys.exit("Byeee 👊")
 
-        if GAME_ACTIVE:
+        if game_active:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE and player_rectangle.bottom == 300:
                     player_gravity = -21
@@ -94,23 +138,37 @@ while 1:
                     player_gravity = -21
         else:
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
-                GAME_ACTIVE = True
+                game_active = True
                 start_time = int(pygame.time.get_ticks() / 1000)
 
-        if event.type == obstacle_timer and GAME_ACTIVE:
-            if randint(0, 2):
-                obstacle_rect_list.append(snail_surface.get_rect(bottomright=(randint(900, 1100), 300)))
-            else:
-                obstacle_rect_list.append(fly_surface.get_rect(bottomright=(randint(900, 1100), 200)))
+        if game_active:
+            if event.type == obstacle_timer:
+                if randint(0, 2):
+                    obstacle_rect_list.append(snail_surface.get_rect(bottomright=(randint(900, 1100), 300)))
+                else:
+                    obstacle_rect_list.append(fly_surface.get_rect(bottomright=(randint(900, 1100), 200)))
+            if event.type == snail_animation_timer:
+                if snail_index == 0:
+                    snail_index = 1
+                else:
+                    snail_index = 0
+                snail_surface = snail_frames[snail_index]
 
+            if event.type == fly_animation_timer:
+                if fly_index == 0:
+                    fly_index = 1
+                else:
+                    fly_index = 0
+                fly_surface = fly_frames[fly_index]
 
-    if GAME_ACTIVE:
+    if game_active:
         # Draw all objects/surfaces 🎭
         screen.blit(sky_surface, (0, 0))
         screen.blit(ground_surface, (0, 300))
         score = display_score()
 
         # Player - LOGIC - ALL
+        player_animation()
         screen.blit(player_surface, player_rectangle)
         player_gravity += 1
         player_rectangle.y += player_gravity
@@ -120,11 +178,14 @@ while 1:
         # Obstacle movement
         obstacle_rect_list = obstacle_movement(obstacle_rect_list)
 
+        game_active = collisions(player_rectangle, obstacle_rect_list)
+
     # START AND GAME END SCREEN
     else:
         screen.fill((94, 129, 162))
         screen.blit(player_stand_start_screen, player_stand_start_screen_rectangle)
         screen.blit(game_title, game_title_rectangle)
+        obstacle_rect_list.clear()
         game_score = FONT.render(f"SCORE: {score}", False, (111, 196, 169))
         game_score_rectangle = game_score.get_rect(center=(400, 330))
 
