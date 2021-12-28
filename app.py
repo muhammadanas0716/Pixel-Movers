@@ -4,6 +4,48 @@ from random import randint
 
 pygame.init()
 
+
+class Player(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+        player_walk_1 = pygame.image.load("graphics/Player/player_walk_1.png").convert_alpha()
+        player_walk_2 = pygame.image.load("graphics/Player/player_walk_2.png").convert_alpha()
+        self.player_walking_animations = [player_walk_1, player_walk_2]
+        self.player_index = 0
+        self.player_jump = pygame.image.load("graphics/Player/jump.png").convert_alpha()
+
+        self.image = self.player_walking_animations[self.player_index]
+        self.rect = self.image.get_rect(midbottom=(200, 300))
+        self.gravity = 0
+
+    def player_input(self):
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_SPACE] and self.rect.bottom >= 300:
+            self.gravity = -20
+
+    def apply_gravity(self):
+        self.gravity += 1
+        self.rect.y += self.gravity
+        if self.rect.bottom >= 300:
+            self.rect.bottom = 300
+
+
+    def animation_state(self):
+        if self.rect.bottom < 300:
+            self.image = self.player_jump
+        else:
+            self.player_index += 0.08
+            if self.player_index >= len(self.player_walking_animations):
+                self.player_index = 0
+            self.image = self.player_walking_animations[int(self.player_index)]
+
+
+    def update(self):
+        self.player_input()
+        self.apply_gravity()
+        self.animation_state()
+
+
 # GLOBAL VARIABLES 🎓
 WINDOW_WIDTH = 800
 WINDOW_HEIGHT = 400
@@ -19,6 +61,9 @@ clock = pygame.time.Clock()
 game_active = False
 start_time = 0
 score = 0
+
+player = pygame.sprite.GroupSingle()
+player.add(Player())
 
 
 # DISPLAY SCORE - FUNCTION
@@ -55,6 +100,7 @@ def collisions(player, obstacles):
     return True
 
 
+# PLAYER ANIMATION
 def player_animation():
     global player_surface, player_index
     if player_rectangle.bottom < 300:
@@ -71,7 +117,7 @@ sky_surface = pygame.image.load("graphics/Sky.png").convert()
 ground_surface = pygame.image.load("graphics/ground.png").convert()
 
 # PLAYER SURFACE
-player_walk_1 = pygame.image.load("graphics/Player/player_stand.png").convert_alpha()
+player_walk_1 = pygame.image.load("graphics/Player/player_walk_1.png").convert_alpha()
 player_walk_2 = pygame.image.load("graphics/Player/player_walk_2.png").convert_alpha()
 player_walking_animations = [player_walk_1, player_walk_2]
 player_index = 0
@@ -96,7 +142,7 @@ game_instruction_rectangle = game_instruction.get_rect(center=(400, 320))
 # ####**OBSTACLES**#####
 # SNAIL SURFACE
 snail_frame_1 = pygame.image.load("graphics/Snail/snail1.png").convert_alpha()
-snail_frame_2= pygame.image.load("graphics/Snail/snail2.png").convert_alpha()
+snail_frame_2 = pygame.image.load("graphics/Snail/snail2.png").convert_alpha()
 snail_index = 0
 snail_frames = [snail_frame_1, snail_frame_2]
 snail_surface = snail_frames[snail_index]
@@ -128,6 +174,7 @@ while 1:
             pygame.quit()
             sys.exit("Byeee 👊")
 
+        # COLLISION LOGIC
         if game_active:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE and player_rectangle.bottom == 300:
@@ -141,6 +188,7 @@ while 1:
                 game_active = True
                 start_time = int(pygame.time.get_ticks() / 1000)
 
+        # ENEMY SPAWN and ANIMATION LOGIC
         if game_active:
             if event.type == obstacle_timer:
                 if randint(0, 2):
@@ -161,8 +209,8 @@ while 1:
                     fly_index = 0
                 fly_surface = fly_frames[fly_index]
 
+    # DRAWING ALL OBJECTS LOGIC
     if game_active:
-        # Draw all objects/surfaces 🎭
         screen.blit(sky_surface, (0, 0))
         screen.blit(ground_surface, (0, 300))
         score = display_score()
@@ -174,10 +222,11 @@ while 1:
         player_rectangle.y += player_gravity
         if player_rectangle.bottom >= 300:
             player_rectangle.bottom = 300
+        player.draw(screen)
+        player.update()
 
         # Obstacle movement
         obstacle_rect_list = obstacle_movement(obstacle_rect_list)
-
         game_active = collisions(player_rectangle, obstacle_rect_list)
 
     # START AND GAME END SCREEN
