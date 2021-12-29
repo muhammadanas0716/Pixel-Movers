@@ -20,7 +20,7 @@ class Player(pygame.sprite.Sprite):
         self.gravity = 0
 
         self.jump_sound = pygame.mixer.Sound('audio/jump.mp3')
-        self.jump_sound.set_volume(0.5)
+        self.jump_sound.set_volume(0.8)
 
     def player_input(self):
         keys = pygame.key.get_pressed()
@@ -87,7 +87,7 @@ class Obstacle(pygame.sprite.Sprite):
 WINDOW_WIDTH = 800
 WINDOW_HEIGHT = 400
 ICON = pygame.image.load("graphics/Player/jump.png")
-TITLE = "Pixel Movers UNDER CONSTRUCTION - RESTRICTED"  # TODO: Change the Title
+TITLE = "Pixel Movers"
 FONT = pygame.font.Font("font/Pixeltype.ttf", 50)
 
 # GAME CONFIG 📐
@@ -99,7 +99,7 @@ game_active = False
 start_time = 0
 score = 0
 background_music = pygame.mixer.Sound("audio/music.wav")
-background_music.set_volume(0.8)
+background_music.set_volume(0.2)
 
 # GROUPS
 player = pygame.sprite.GroupSingle()
