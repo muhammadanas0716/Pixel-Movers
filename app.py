@@ -58,7 +58,7 @@ class Obstacle(pygame.sprite.Sprite):
             fly_frame_2 = pygame.image.load("graphics/Fly/Fly2.png").convert_alpha()
             self.frames = [fly_frame_1, fly_frame_2]
             y_position = 210
-        else:
+        elif type == "snail":
             snail_frame_1 = pygame.image.load("graphics/Snail/snail1.png").convert_alpha()
             snail_frame_2 = pygame.image.load("graphics/Snail/snail2.png").convert_alpha()
             self.frames = [snail_frame_1, snail_frame_2]
